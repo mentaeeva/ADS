@@ -1,5 +1,7 @@
 package WEEK1;
+
 import java.util.Iterator;
+
 public class MyArrayList<T> implements MyList<T> {
     // constructor
     private Object[] array;
@@ -14,10 +16,14 @@ public class MyArrayList<T> implements MyList<T> {
     //to make size bigger
     private void grow() {
         Object[] newArray = new Object[array.length * 2];
-        for (int i = 0; i < size; i++) {
-            newArray[i] = array[i];
-        }
+        copyElements(newArray, 0);
         array = newArray;
+    }
+
+    private void copyElements(Object[] newArray, int index) {
+        if (index == size) return;
+        newArray[index] = array[index];
+        copyElements(newArray, index + 1);
     }
 
     // add new element (calls void grow)
@@ -39,11 +45,15 @@ public class MyArrayList<T> implements MyList<T> {
     public void add(int index, T item) {
         if (index < 0 || index > size) return;
         if (size == array.length) grow();
-        for (int i = size; i > index; i--) {
-            array[i] = array[i - 1];
-        }
+        shiftRight(index, size);
         array[index] = item;
         size++;
+    }
+
+    private void shiftRight(int index, int current) {
+        if (current == index) return;
+        array[current] = array[current - 1];
+        shiftRight(index, current - 1);
     }
 
     //add element in first position
@@ -81,81 +91,103 @@ public class MyArrayList<T> implements MyList<T> {
 
     // deletes element by index
     @Override
-    public void remove (int index){
+    public void remove(int index) {
         if (index < 0 || index >= size) return;
-        array[index] = null;
+        shiftLeft(index, size - 1);
+        size--;
+    }
+
+    private void shiftLeft(int index, int current) {
+        if (index == current) return;
+        array[index] = array[index + 1];
+        shiftLeft(index + 1, current);
     }
 
     //deletes first element
     @Override
-    public void removeFirst(){
-        if (size == 0) return;
-        size--;
-        array[0] = null;
+    public void removeFirst() {
+        remove(0);
     }
 
     //deletes last element
     @Override
-    public void removeLast(){
+    public void removeLast() {
         if (size == 0) return;
         size--;
-        array[size - 1] = null;
     }
 
     //sorting by bubble sort
     @Override
-
     public void sort() {
-        for (int i = 0; i < size - 1; i++) { // Внешний цикл (проходы по массиву)
-            for (int j = 0; j < size - 1 - i; j++) { // Внутренний цикл (сравнение элементов)
-                Comparable<T> current = (Comparable<T>) array[j]; // Текущий элемент
-                T next = (T) array[j + 1]; // Следующий элемент
-                if (current.compareTo(next) > 0) { // Сравниваем элементы
-                    T temp = (T) array[j]; // Сохраняем текущий элемент
-                    array[j] = array[j + 1]; // Меняем местами
-                    array[j + 1] = temp;
-                }
-            }
+        bubbleSort(0, 0);
+    }
+
+    private void bubbleSort(int i, int j) {
+        if (i == size - 1) return;
+        if (j == size - 1 - i) {
+            bubbleSort(i + 1, 0);
+            return;
         }
+        Comparable<T> current = (Comparable<T>) array[j];
+        T next = (T) array[j + 1];
+        if (current.compareTo(next) > 0) {
+            T temp = (T) array[j];
+            array[j] = array[j + 1];
+            array[j + 1] = temp;
+        }
+        bubbleSort(i, j + 1);
     }
 
     // returns index of element
     @Override
-    public int indexOf(Object object){
-        for (int i = 0; i < size; i++) {
-            if (object.equals(array[i])) return i ;
-        }
-        return -1;
-
+    public int indexOf(Object object) {
+        return findIndex(object, 0);
     }
+
+    private int findIndex(Object object, int index) {
+        if (index == size) return -1;
+        if (object.equals(array[index])) return index;
+        return findIndex(object, index + 1);
+    }
+
     //returns index of the last repeated element
     @Override
-    public int lastIndexOf(Object object){
-        for (int i=size-1; i>=0;i--){
-            if (object.equals(array[i])) return i;
-        }
-        return -1;
+    public int lastIndexOf(Object object) {
+        return findLastIndex(object, size - 1);
+    }
+
+    private int findLastIndex(Object object, int index) {
+        if (index < 0) return -1;
+        if (object.equals(array[index])) return index;
+        return findLastIndex(object, index - 1);
     }
 
     //determines if element exists
     @Override
-    public boolean exists(Object object){
-        for (int i=0; i<size;i++){
-            if (object.equals(array[i])) return true;
-        }
-        return false;
+    public boolean exists(Object object) {
+        return checkExists(object, 0);
+    }
+
+    private boolean checkExists(Object object, int index) {
+        if (index == size) return false;
+        if (object.equals(array[index])) return true;
+        return checkExists(object, index + 1);
     }
 
     //makes exact array from object array
     @Override
-    public Object[] toArray(){
-        Object[] ExactArray = new Object[size];
-        for (int i=0;i<size;i++){
-            ExactArray[i] = array[i];
-
-        }
-        return ExactArray;
+    public Object[] toArray() {
+        Object[] exactArray = new Object[size];
+        fillExactArray(exactArray, 0);
+        return exactArray;
     }
+
+    private void fillExactArray(Object[] exactArray, int index) {
+        if (index == size) return;
+        exactArray[index] = array[index];
+        fillExactArray(exactArray, index + 1);
+    }
+
     //clears array
     @Override
     public void clear() {
@@ -171,24 +203,6 @@ public class MyArrayList<T> implements MyList<T> {
     // to use foreach
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            int current = 0;
-
-            @Override
-            public boolean hasNext() {
-                return current < size;
-            }
-
-            @Override
-            public T next() {
-                return (T) array[current++];
-            }
-        };
+        throw new UnsupportedOperationException();
     }
-
-
-
-
-
 }
-
