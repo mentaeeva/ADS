@@ -2,10 +2,10 @@ package ASSIGNMENT3;
 
 public class MyHashTable<K, V> {
     // Inner class representing a node in a linked list
-    private class HashNode<K, V> {
+    class HashNode<K, V> {
         private K key;
         private V value;
-        private HashNode<K, V> next;
+        public HashNode<K, V> next;
 
         // Constructor initializes key and value
         public HashNode(K key, V value) {
@@ -20,7 +20,7 @@ public class MyHashTable<K, V> {
         }
     }
 
-    private HashNode<K, V>[] chainArray;
+    protected HashNode<K, V>[] chainArray;
     private int M = 11;
     private int size;
 
